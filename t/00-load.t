@@ -2,5 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 1;
-use ok 'Catalyst::View::HTML::Zoom';
+use Test::More;
+use_ok 'Catalyst::View::HTML::Zoom';
+
+done_testing;

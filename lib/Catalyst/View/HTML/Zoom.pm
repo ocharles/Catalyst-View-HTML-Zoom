@@ -1,6 +1,8 @@
 package Catalyst::View::HTML::Zoom;
-use strict;
-use warnings;
+use Moose;
+use namespace::autoclean;
+
+extends 'Catalyst::View';
 
 =head1 NAME
 
@@ -8,4 +10,4 @@ Catalyst::View::HTML::Zoom -
 
 =cut
 
-1;
+__PACKAGE__->meta->make_immutable;
