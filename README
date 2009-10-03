@@ -1,3 +1,27 @@
 NAME
-    Catalyst::View::HTML::Zoom -
+    Catalyst::View::HTML::Zoom - Catalyst view to HTML::Zoom
+
+SYNOPSIS
+        package MyApp::View::HTML;
+        use Moose;
+    
+        extends 'Catalyst::View::HTML::Zoom';
+    
+        __PACKAGE__->meta->make_immutable;
+
+METHODS
+process
+    Renders the template specified in $c->stash->{template} or $c->action
+    (the private name of the matched action). Calls render to perform actual
+    rendering. Output is stored in $c->response->body.
+
+  render($c, $template, \%args)
+    Renders the given template and returns output, or a Template::Exception
+    object upon error.
+
+COPYRIGHT AND LICENSE
+    Copyright (c) 2009 Tomas Doran.
+
+    This program is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
 
