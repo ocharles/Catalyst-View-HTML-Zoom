@@ -49,8 +49,22 @@ Catalyst::View::HTML::Zoom - Catalyst view to HTML::Zoom
     
     extends 'Catalyst::View::HTML::Zoom';
     
-    __PACKAGE__->meta->make_immutable;
+    #__PACKAGE__->config( stash_key => 'zoom' ); # This is the default
     
+    __PACKAGE__->meta->make_immutable;
+
+    # Elsewhere in a controller method
+
+    sub foobar {
+        my ($self, $c) = @_;
+        # Merge pre-existing selectors
+        $c->stash->{zoom} = Catalyst::Utils::merge_hashes($c->stash->{zoom}||{},
+            '#name' => 'Dave'
+        );
+        # $c->stash->{template} = 'foobar'; # Can manually set the template, or
+                                            # it defaults to your action name.
+    }
+
 =head1 METHODS
 
 =head1 process
