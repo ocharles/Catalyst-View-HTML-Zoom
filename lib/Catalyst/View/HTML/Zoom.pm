@@ -2,20 +2,32 @@ package Catalyst::View::HTML::Zoom;
 use Moose;
 use Method::Signatures::Simple;
 use HTML::Zoom;
-use File::Slurp qw/read_file/;
+use MooseX::Types::Moose qw/HashRef/;
+use MooseX::Types::Common::String qw/NonEmptySimpleStr/;
+use MooseX::Lexical::Types qw/NonEmptySimpleStr HashRef/;
 use namespace::autoclean;
 
 extends 'Catalyst::View';
 
+__PACKAGE__->config( stash_key => 'zoom' );
+
+has stash_key => ( is => 'ro', isa => NonEmptySimpleStr, required => 1 );
+
 method process ($c) {
-    my $template_fn = $c->stash->{template} || "" . $c->action;
+    my NonEmptySimpleStr $template_fn = $c->stash->{template} || "" . $c->action;
+    my HashRef $args = $c->stash->{$self->stash_key} || {};
     my $template = $c->path_to('root', $template_fn);
     die("Cannot find template $template_fn") unless -r $template;
-    $c->body($self->render($c, $template, $c->stash));
+    $c->res->body($self->render($c, $template, $args));
 }
 
 method render ($c, $template, $args) {
-    my $contents = read_file($template);
+    my $contents = do {
+        open(my $fh, '<', $template)
+            or die $!;
+        local $/;
+        <$fh>;
+    };
     my ($body, $fh);
     open($fh, '>', \$body) or die $!; 
     HTML::Zoom->from_string($contents)

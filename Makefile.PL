@@ -12,10 +12,12 @@ all_from 'lib/Catalyst/View/HTML/Zoom.pm';
 
 requires 'Catalyst::Runtime' => '5.80013';
 requires 'Moose';
+requires 'MooseX::Types';
+requires 'MooseX::Lexical::Types';
+requires 'MooseX::Types::Common';
 requires 'namespace::autoclean';
 requires 'Method::Signatures::Simple';
 requires 'HTML::Zoom';
-requires 'File::Slurp';
 
 test_requires 'Test::More' => '0.88';
 test_requires 'Catalyst::Action::Renderview';
