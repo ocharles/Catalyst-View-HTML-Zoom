@@ -7,6 +7,9 @@ use MooseX::Types::Common::String qw/NonEmptySimpleStr/;
 use MooseX::Lexical::Types qw/NonEmptySimpleStr HashRef/;
 use namespace::autoclean;
 
+our $VERSION = '0.001';
+$VERSION = eval $VERSION;
+
 extends 'Catalyst::View';
 
 __PACKAGE__->config( stash_key => 'zoom' );
