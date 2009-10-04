@@ -2,7 +2,7 @@ package Catalyst::View::HTML::Zoom;
 use Moose;
 use Method::Signatures::Simple;
 use HTML::Zoom;
-use MooseX::Types::Moose qw/HashRef/;
+use MooseX::Types::Moose qw/HashRef Undef/;
 use MooseX::Types::Common::String qw/NonEmptySimpleStr/;
 use MooseX::Lexical::Types qw/NonEmptySimpleStr HashRef/;
 use namespace::autoclean;
@@ -12,15 +12,23 @@ $VERSION = eval $VERSION;
 
 extends 'Catalyst::View';
 
-__PACKAGE__->config( stash_key => 'zoom' );
+__PACKAGE__->config( stash_key => 'zoom', template_extension => undef );
 
 has stash_key => ( is => 'ro', isa => NonEmptySimpleStr, required => 1 );
+has template_extension => ( is => 'ro', isa => Undef|NonEmptySimpleStr, required => 1 );
 
 method process ($c) {
     my NonEmptySimpleStr $template_fn = $c->stash->{template} || "" . $c->action;
+    if (my $ext = $self->template_extension) {
+        $template_fn = $template_fn . '.' . $ext
+            unless $template_fn =~ /\.$ext$/;
+    }
+
     my HashRef $args = $c->stash->{$self->stash_key} || {};
+
     my $template = $c->path_to('root', $template_fn);
     die("Cannot find template $template_fn") unless -r $template;
+
     $c->res->body($self->render($c, $template, $args));
 }
 
