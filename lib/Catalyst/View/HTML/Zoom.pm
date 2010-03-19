@@ -1,4 +1,5 @@
 package Catalyst::View::HTML::Zoom;
+# ABSTRACT: Catalyst view to HTML::Zoom
 use Moose;
 use Method::Signatures::Simple;
 use HTML::Zoom;
@@ -6,9 +7,6 @@ use MooseX::Types::Moose qw/HashRef Undef/;
 use MooseX::Types::Common::String qw/NonEmptySimpleStr/;
 use MooseX::Lexical::Types qw/NonEmptySimpleStr HashRef/;
 use namespace::autoclean;
-
-our $VERSION = '0.001';
-$VERSION = eval $VERSION;
 
 extends 'Catalyst::View';
 
@@ -45,10 +43,6 @@ method render ($c, $template) {
     local $_ = $zoom;
     return $zoomer->$action($c->stash)->to_html;
 }
-
-=head1 NAME
-
-Catalyst::View::HTML::Zoom - Catalyst view to HTML::Zoom
 
 =head1 SYNOPSIS
 
@@ -94,14 +88,9 @@ This is the first version of a Catalyst view to L<HTML::Zoom> - and we might hav
 aware that this is still in early stages, and the API is not at all stable. You have been warned (but
 encouraged to break it and submit bug reports and patches :).
 
-=head1 COPYRIGHT AND LICENSE
+=head1 THANKS
 
-Copyright (c) 2010 Oliver Charles.
-Copyright (c) 2009 Tomas Doran.
-
-Original design by Thomas Doran, thanks t0m!
-
-This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
+Thanks to Thomas Doran for the initial starting point
 
 =cut
 
