@@ -12,9 +12,8 @@ $VERSION = eval $VERSION;
 
 extends 'Catalyst::View';
 
-__PACKAGE__->config( stash_key => 'zoom', template_extension => undef );
+__PACKAGE__->config( template_extension => undef );
 
-has stash_key => ( is => 'ro', isa => NonEmptySimpleStr, required => 1 );
 has template_extension => ( is => 'ro', isa => Undef|NonEmptySimpleStr, required => 1 );
 
 method process ($c) {
@@ -55,39 +54,52 @@ Catalyst::View::HTML::Zoom - Catalyst view to HTML::Zoom
 
     package MyApp::View::HTML;
     use Moose;
-
     extends 'Catalyst::View::HTML::Zoom';
 
-    #__PACKAGE__->config( stash_key => 'zoom' ); # This is the default
-
-    __PACKAGE__->meta->make_immutable;
-
-    # Elsewhere in a controller method
-
-    sub foobar {
+    package MyApp::Controller::Wobble;
+    use Moose; BEGIN { extends 'Catalyst::Controller' }
+    sub dance : Local {
         my ($self, $c) = @_;
-        # Merge pre-existing selectors
-        $c->stash->{zoom} = Catalyst::Utils::merge_hashes($c->stash->{zoom}||{},
-            '#name' => 'Dave'
-        );
-        # $c->stash->{template} = 'foobar'; # Can manually set the template, or
-                                            # it defaults to your action name.
+        $c->stash( shaking => 'hips' );
     }
+
+    package MyApp::View::HTML::Controller;
+    use Moose;
+    sub dance {
+        my ($self, $stash) = @_;
+        $_->select('#shake')->replace_content($stash->{shaking});
+    }
+
+    #root/wobble/dance
+    <p>Shake those <span id="shake" />!</p>
+
+    /wobble/dance => "<p>Shake those hips!</p>";
 
 =head1 METHODS
 
 =head1 process
 
-Renders the template specified in $c->stash->{template} or $c->action (the private name of the matched action).
-Calls render to perform actual rendering. Output is stored in $c->response->body.
+Renders the template specified in C<$c->stash->{template}> or C<$c->namespace/$c->action>
+(the private name of the matched action). Calls render to perform actual rendering.
 
-=head2 render($c, $template, \%args)
+Output is stored in $c->response->body.
+
+=head2 render($c, $template)
 
 Renders the given template and returns output, or a Template::Exception object upon error.
 
+=head1 WARNING: VOLATILE!
+
+This is the first version of a Catalyst view to L<HTML::Zoom> - and we might have got it wrong. Please be
+aware that this is still in early stages, and the API is not at all stable. You have been warned (but
+encouraged to break it and submit bug reports and patches :).
+
 =head1 COPYRIGHT AND LICENSE
 
+Copyright (c) 2010 Oliver Charles.
 Copyright (c) 2009 Tomas Doran.
+
+Original design by Thomas Doran, thanks t0m!
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 
