@@ -8,9 +8,7 @@ __PACKAGE__->config(namespace => q{});
 
 sub main :Path {
     my ($self, $c) = @_;
-    $c->stash->{zoom} = {
-        '#name' => { -replace_content => 'Dave' },
-    };
+    $c->stash( name => 'Dave' );
 }
 
 sub end : ActionClass('RenderView') {}

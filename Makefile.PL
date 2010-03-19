@@ -17,7 +17,7 @@ requires 'MooseX::Lexical::Types';
 requires 'MooseX::Types::Common';
 requires 'namespace::autoclean';
 requires 'Method::Signatures::Simple';
-requires 'HTML::Zoom';
+requires 'HTML::Zoom' => '0.9';
 
 test_requires 'Test::More' => '0.88';
 test_requires 'Catalyst::Action::Renderview';

@@ -24,29 +24,27 @@ method process ($c) {
             unless $template_fn =~ /\.$ext$/;
     }
 
-    my HashRef $args = $c->stash->{$self->stash_key} || {};
+    $template_fn = $c->namespace . "/$template_fn";
 
     my $template = $c->path_to('root', $template_fn);
     die("Cannot find template $template_fn") unless -r $template;
 
-    $c->res->body($self->render($c, $template, $args));
+    $c->res->body($self->render($c, $template));
 }
 
-method render ($c, $template, $args) {
-    my $contents = do {
-        open(my $fh, '<', $template)
-            or die $!;
-        local $/;
-        <$fh>;
-    };
-    my ($body, $fh);
-    open($fh, '>', \$body) or die $!; 
-    HTML::Zoom->from_string($contents)
-        ->add_selectors(%$args)
-        ->stream_to($fh)
-        ->render;
-    close($fh);
-    return $body;
+method render ($c, $template) {
+    my $zoom = HTML::Zoom->from_file($template);
+
+    my $controller = $c->controller->meta->name;
+    $controller =~ s/^.*::(.*)$/$1/;
+
+    my $zoomer_class = join '::', ($self->meta->name, $controller);
+    my $action = $c->action;
+
+    Class::MOP::load_class($zoomer_class);
+    my $zoomer = $zoomer_class->new;
+    local $_ = $zoom;
+    return $zoomer->$action($c->stash)->to_html;
 }
 
 =head1 NAME
@@ -57,11 +55,11 @@ Catalyst::View::HTML::Zoom - Catalyst view to HTML::Zoom
 
     package MyApp::View::HTML;
     use Moose;
-    
+
     extends 'Catalyst::View::HTML::Zoom';
-    
+
     #__PACKAGE__->config( stash_key => 'zoom' ); # This is the default
-    
+
     __PACKAGE__->meta->make_immutable;
 
     # Elsewhere in a controller method
