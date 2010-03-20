@@ -1,27 +1,28 @@
 package Catalyst::View::HTML::Zoom;
 # ABSTRACT: Catalyst view to HTML::Zoom
 use Moose;
-use Method::Signatures::Simple;
 use HTML::Zoom;
-use MooseX::Types::Moose qw/HashRef Undef/;
-use MooseX::Types::Common::String qw/NonEmptySimpleStr/;
-use MooseX::Lexical::Types qw/NonEmptySimpleStr HashRef/;
+use MooseX::Types::Moose qw( Maybe );
+use MooseX::Types::Common::String qw( NonEmptySimpleStr );
 use namespace::autoclean;
 
 extends 'Catalyst::View';
 
 __PACKAGE__->config( template_extension => undef );
 
-has template_extension => ( is => 'ro', isa => Undef|NonEmptySimpleStr, required => 1 );
+has template_extension => (
+    is       => 'ro',
+    isa      => Maybe[NonEmptySimpleStr],
+    required => 1
+);
 
-method process ($c) {
-    my NonEmptySimpleStr $template_fn = $c->stash->{template} || "" . $c->action;
+sub process {
+    my ($self, $c) = @_;
+    my $template_fn = $c->stash->{template} || "" . $c->action;
     if (my $ext = $self->template_extension) {
         $template_fn = $template_fn . '.' . $ext
             unless $template_fn =~ /\.$ext$/;
     }
-
-    $template_fn = $c->namespace . "/$template_fn";
 
     my $template = $c->path_to('root', $template_fn);
     die("Cannot find template $template_fn") unless -r $template;
@@ -29,14 +30,15 @@ method process ($c) {
     $c->res->body($self->render($c, $template));
 }
 
-method render ($c, $template) {
+sub render {
+    my ($self, $c, $template) = @_;
     my $zoom = HTML::Zoom->from_file($template);
 
     my $controller = $c->controller->meta->name;
     $controller =~ s/^.*::(.*)$/$1/;
 
     my $zoomer_class = join '::', ($self->meta->name, $controller);
-    my $action = $c->action;
+    my $action = $c->action->name;
 
     Class::MOP::load_class($zoomer_class);
     my $zoomer = $zoomer_class->new;
