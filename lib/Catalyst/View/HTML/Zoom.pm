@@ -67,7 +67,7 @@ method render ($c, $template) {
     #root/wobble/dance
     <p>Shake those <span id="shake" />!</p>
 
-    /wobble/dance => "<p>Shake those hips!</p>";
+    /wobble/dance => "<p>Shake those <span id="shake">hips</span>!</p>";
 
 =head1 METHODS
 
