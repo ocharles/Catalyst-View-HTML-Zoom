@@ -57,7 +57,7 @@ method render ($c, $template) {
         $c->stash( shaking => 'hips' );
     }
 
-    package MyApp::View::HTML::Controller;
+    package MyApp::View::HTML::Wobble;
     use Moose;
     sub dance {
         my ($self, $stash) = @_;
