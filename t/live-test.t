@@ -16,4 +16,10 @@ use Catalyst::Test 'TestApp';
     ok $ctx->res->body =~ m|Hello <span id="name">Dave</span>|;
 }
 
+{
+    my ($res, $ctx) = ctx_request('/foo/bar');
+    ok $res->is_success;
+    ok $ctx->res->body =~ m|Hello my name is <span id="name">Foo Foo</span>|;
+}
+
 done_testing;
