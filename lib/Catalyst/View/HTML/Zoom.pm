@@ -73,7 +73,7 @@ sub render {
 
 =head1 METHODS
 
-=head1 process
+=head2 process
 
 Renders the template specified in C<$c->stash->{template}> or C<$c->namespace/$c->action>
 (the private name of the matched action). Calls render to perform actual rendering.
