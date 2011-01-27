@@ -27,24 +27,40 @@ sub process {
     my $template = $c->path_to('root', $template_fn);
     die("Cannot find template $template_fn") unless -r $template;
 
-    $c->res->body($self->render($c, $template));
+    $c->res->body($self->render($c, $template->stringify));
 }
 
 sub render {
     my ($self, $c, $template) = @_;
-    my $zoom = HTML::Zoom->from_file($template);
-
+    my $zoom = $self->_build_zoom($template);
     my $controller = $c->controller->meta->name;
     $controller =~ s/^.*::(.*)$/$1/;
 
     my $zoomer_class = join '::', ($self->meta->name, $controller);
-    my $action = $c->action->name;
-
+    
     Class::MOP::load_class($zoomer_class);
     my $zoomer = $zoomer_class->new;
-    local $_ = $zoom;
-    return $zoomer->$action($c->stash)->to_html;
+    my $action = $self->_target_action_from_context($c);
+
+    {
+        local $_ = $zoom;
+        return $zoomer->$action($c->stash)->to_html;
+    }
 }
+
+sub _target_action_from_context {
+    my ($self, $c) = @_;
+    return $c->stash->{zoom_action}
+      || $c->action->name;
+}
+
+sub _build_zoom {
+    my ($self, $template) = @_;
+    return ref $template ? 
+      HTML::Zoom->from_html($$template) :
+      HTML::Zoom->from_file($template);
+}
+
 
 =head1 SYNOPSIS
 
@@ -83,6 +99,11 @@ Output is stored in $c->response->body.
 =head2 render($c, $template)
 
 Renders the given template and returns output, or a Template::Exception object upon error.
+
+=head2 _build_zoom ($template_path|\$html)
+
+Returns an L<HTML::Zoom> object given either a path on the filesystem or a
+scalar reference containing the html text.
 
 =head1 WARNING: VOLATILE!
 
