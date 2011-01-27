@@ -1,6 +1,7 @@
 package Catalyst::View::HTML::Zoom;
 # ABSTRACT: Catalyst view to HTML::Zoom
 use Moose;
+use Class::MOP;
 use HTML::Zoom;
 use MooseX::Types::Moose qw( Maybe );
 use MooseX::Types::Common::String qw( NonEmptySimpleStr );
@@ -15,6 +16,13 @@ has template_extension => (
     isa      => Maybe[NonEmptySimpleStr],
     required => 1
 );
+
+my $app_class;
+before COMPONENT => sub {
+    $app_class = ref $_[1] || $_[1];
+};
+
+sub app_class { $app_class }
 
 sub process {
     my ($self, $c) = @_;
@@ -33,25 +41,14 @@ sub process {
 sub render {
     my ($self, $c, $template) = @_;
     my $zoom = $self->_build_zoom($template);
-    my $controller = $c->controller->meta->name;
-    $controller =~ s/^.*::(.*)$/$1/;
-
-    my $zoomer_class = join '::', ($self->meta->name, $controller);
-    
-    Class::MOP::load_class($zoomer_class);
-    my $zoomer = $zoomer_class->new;
+    my $zoomer_class = $self->_zoomer_class_from_context($c);
+    my $zoomer = $self->_build_zoomer($zoomer_class);
     my $action = $self->_target_action_from_context($c);
 
     {
         local $_ = $zoom;
         return $zoomer->$action($c->stash)->to_html;
     }
-}
-
-sub _target_action_from_context {
-    my ($self, $c) = @_;
-    return $c->stash->{zoom_action}
-      || $c->action->name;
 }
 
 sub _build_zoom {
@@ -61,6 +58,31 @@ sub _build_zoom {
       HTML::Zoom->from_file($template);
 }
 
+sub _zoomer_class_from_context {
+    my ($self, $c) = @_;
+    my $controller = $c->controller->meta->name;
+    $controller =~ s/^.*::(.*)$/$1/;
+    my $zoomer_class = do {
+        $c->stash->{zoom_class} ||
+          join('::', ($self->meta->name, $controller));
+    };
+    Class::MOP::load_class($zoomer_class);
+    return $zoomer_class;
+}
+
+sub _build_zoomer {
+    my ($self, $zoomer_class) = @_;
+
+    #    my $config_key = 'Model::' . $self->model_name . '::' . $source;
+    my %args; # = %{$self->app_class->config->{$config_key}};
+    return $zoomer_class->new(%args);
+}
+
+sub _target_action_from_context {
+    my ($self, $c) = @_;
+    return $c->stash->{zoom_action}
+      || $c->action->name;
+}
 
 =head1 SYNOPSIS
 
