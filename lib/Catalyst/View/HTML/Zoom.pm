@@ -6,6 +6,7 @@ use HTML::Zoom;
 use MooseX::Types::Moose qw( Maybe );
 use MooseX::Types::Common::String qw( NonEmptySimpleStr );
 use namespace::autoclean;
+use Path::Class ();
 
 extends 'Catalyst::View';
 
@@ -15,6 +16,12 @@ has template_extension => (
     is       => 'ro',
     isa      => Maybe[NonEmptySimpleStr],
     required => 1
+);
+
+has root => (
+    is => 'ro',
+    isa => 'Str',
+    predicate => 'has_root',
 );
 
 my $app_class;
@@ -31,11 +38,16 @@ sub process {
         $template_fn = $template_fn . '.' . $ext
             unless $template_fn =~ /\.$ext$/;
     }
+    
+    my $template_path = $self->has_root ?
+        Path::Class::dir($self->root, $template_fn) :
+        Path::Class::dir($c->config->{root}, $template_fn);
 
-    my $template = $c->path_to('root', $template_fn);
-    die("Cannot find template $template_fn") unless -r $template;
-
-    $c->res->body($self->render($c, $template->stringify));
+    if( -r $template_path) {
+        $c->res->body($self->render($c, $template_path->stringify));
+    } else {
+        $c->log->error("Cannot find template $template_fn at $template_path");
+    }
 }
 
 sub render {
