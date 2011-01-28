@@ -72,9 +72,7 @@ sub _zoomer_class_from_context {
 
 sub _build_zoomer {
     my ($self, $zoomer_class) = @_;
-
-    #    my $config_key = 'Model::' . $self->model_name . '::' . $source;
-    my %args; # = %{$self->app_class->config->{$config_key}};
+    my %args = %{$self->app_class->config->{$zoomer_class} || {}};
     return $zoomer_class->new(%args);
 }
 
