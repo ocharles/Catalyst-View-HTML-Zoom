@@ -9,6 +9,7 @@ use namespace::autoclean;
 use Path::Class ();
 
 extends 'Catalyst::View';
+with 'Catalyst::Component::ApplicationAttribute';
 
 __PACKAGE__->config( template_extension => undef );
 
@@ -23,13 +24,6 @@ has root => (
     isa => 'Str',
     predicate => 'has_root',
 );
-
-my $app_class;
-before COMPONENT => sub {
-    $app_class = ref $_[1] || $_[1];
-};
-
-sub app_class { $app_class }
 
 sub process {
     my ($self, $c) = @_;
@@ -84,7 +78,9 @@ sub _zoomer_class_from_context {
 
 sub _build_zoomer {
     my ($self, $zoomer_class) = @_;
-    my %args = %{$self->app_class->config->{$zoomer_class} || {}};
+    my $key = $zoomer_class;
+    $key =~s/^.+::(View)/$1/;
+    my %args = %{$self->_application->config->{$key} || {}};
     return $zoomer_class->new(%args);
 }
 

@@ -6,7 +6,10 @@ use Catalyst;
 extends 'Catalyst';
 
 __PACKAGE__->config(
-    default_view => 'HTML'
+    default_view => 'HTML',
+    'View::HTML::Foo' => {
+        test_arg => 111,
+    },
 );
 
 __PACKAGE__->setup;
