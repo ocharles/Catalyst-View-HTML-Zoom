@@ -26,21 +26,12 @@ has root => (
 );
 
 sub process {
-    my ($self, $c) = @_;
-    my $template_fn = $c->stash->{template} || "" . $c->action;
-    if (my $ext = $self->template_extension) {
-        $template_fn = $template_fn . '.' . $ext
-            unless $template_fn =~ /\.$ext$/;
-    }
-    
-    my $template_path = $self->has_root ?
-        Path::Class::dir($self->root, $template_fn) :
-        Path::Class::dir($c->config->{root}, $template_fn);
-
+    my ($self, $c) = @_;    
+    my $template_path = $self->_template_path_from_context($c);
     if( -r $template_path) {
         $c->res->body($self->render($c, $template_path->stringify));
     } else {
-        $c->log->error("Cannot find template $template_fn at $template_path");
+        $c->log->error("Cannot find template at $template_path");
     }
 }
 
@@ -55,6 +46,19 @@ sub render {
         local $_ = $zoom;
         return $zoomer->$action($c->stash)->to_html;
     }
+}
+
+sub _template_path_from_context {
+    my ($self, $c) = @_;
+    my $template_fn = $c->stash->{template} || "" . $c->action;
+    if (my $ext = $self->template_extension) {
+        $template_fn = $template_fn . '.' . $ext
+            unless $template_fn =~ /\.$ext$/;
+    }
+    
+    return $self->has_root ?
+        Path::Class::dir($self->root, $template_fn) :
+        Path::Class::dir($c->config->{root}, $template_fn);
 }
 
 sub _build_zoom {
