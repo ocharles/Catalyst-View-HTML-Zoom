@@ -200,7 +200,7 @@ C<< $c->response->content_type >> to C<text/html; charset=utf-8> or whatever you
 configured as the L</content_type> attribute unless this header has previously
 been set.
 
-=head2 render ($c, $template || \$template, $args)
+=head2 render ($c, $template || \$template, \%args)
 
 Renders the given template and returns output.
 
