@@ -1,0 +1,78 @@
+# SYNOPSIS
+
+    package MyApp::View::HTML;
+    use Moose;
+    extends 'Catalyst::View::HTML::Zoom';
+
+    package MyApp::Controller::Wobble;
+    use Moose; BEGIN { extends 'Catalyst::Controller' }
+    sub dance : Local {
+        my ($self, $c) = @_;
+        $c->stash( shaking => 'hips' );
+    }
+
+    package MyApp::View::HTML::Wobble;
+    use Moose;
+    sub dance {
+        my ($self, $stash) = @_;
+        $_->select('#shake')->replace_content($stash->{shaking});
+    }
+
+    #root/wobble/dance
+    <p>Shake those <span id="shake" />!</p>
+
+    /wobble/dance => "<p>Shake those <span id="shake">hips</span>!</p>";
+
+# ATTRIBUTES
+
+The following is a list of configuration attributes you can set in your global
+[Catalyst](http://search.cpan.org/perldoc?Catalyst) configuration or locally with the `__PACKAGE__-`config> method.
+
+## template_extension
+
+Optionally set the filename extension of your zoomable templates.  Common
+values might be 'html' or 'xhtml'
+
+## content_type
+
+Sets the default content-type of the response body.
+
+## root_prefix
+
+Used at the prefix path for where yout templates are stored.  Defaults to 
+$c->config->{root}.  
+
+# METHODS
+
+## process ($c)
+
+Renders the template specified in `$c-`stash->{template}> or 
+`$c-`namespace/$c->action> (the private name of the matched action). Stash
+contents are passed to the underlying view object.
+
+Output is stored in `$c-`response->body> and we set the value of 
+`$c-`response->content_type> to `text/html; charset=utf-8` or whatever you
+configured as the [content_type](#pod_content_type) attribute unless this header has previously
+been set.
+
+## render($c, $template, $args)
+
+Renders the given template and returns output.
+
+If `$template` is a simple scalar, we assume this is a path part that combines
+with the value of [root_prefix](#pod_root_prefix) to discover a file that lives on your local
+filesystem.
+
+However, if `$template` is a ref, we assume this is a scalar ref containing 
+some html you wish to render directly.
+
+# WARNING: VOLATILE!
+
+This is the first version of a Catalyst view to [HTML::Zoom](http://search.cpan.org/perldoc?HTML::Zoom) - and we might 
+have got it wrong. Please be aware that this is still in early stages, and the
+API is not at all stable. You have been warned (but encouraged to break it and 
+submit bug reports and patches :).
+
+# THANKS
+
+Thanks to Thomas Doran for the initial starting point
