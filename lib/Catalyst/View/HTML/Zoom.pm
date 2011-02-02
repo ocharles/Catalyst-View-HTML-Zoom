@@ -1,77 +1,97 @@
 package Catalyst::View::HTML::Zoom;
 # ABSTRACT: Catalyst view to HTML::Zoom
+
 use Moose;
 use Class::MOP;
 use HTML::Zoom;
-use MooseX::Types::Moose qw( Maybe );
-use MooseX::Types::Common::String qw( NonEmptySimpleStr );
 use namespace::autoclean;
 use Path::Class ();
 
 extends 'Catalyst::View';
 with 'Catalyst::Component::ApplicationAttribute';
 
-__PACKAGE__->config( template_extension => undef );
-
 has template_extension => (
-    is       => 'ro',
-    isa      => Maybe[NonEmptySimpleStr],
-    required => 1
-);
-
-has root => (
     is => 'ro',
     isa => 'Str',
-    predicate => 'has_root',
+    predicate => 'has_template_extension',
 );
+
+has content_type => (
+    is => 'ro',
+    isa => 'Str',
+    required => 1,
+    default => 'text/html; charset=utf-8',
+);
+
+has root_prefix => (
+    is => 'ro',
+    isa => 'Str',
+    lazy_build => 1,
+);
+
+sub _build_root_prefix {
+    shift->_application->config->{root}
+      || 'root';
+}
 
 sub process {
     my ($self, $c) = @_;    
-    my $template_path = $self->_template_path_from_context($c);
-    if( -r $template_path) {
-        $c->res->body($self->render($c, $template_path->stringify));
+    my $template_path_part = $self->_template_path_part_from_context($c);
+    if(my $out = $self->render($c, $template_path_part)) {
+        $c->response->body($out);
+        $c->response->content_type($self->content_type)
+          unless ($c->response->content_type);
+        return 1;
     } else {
-        $c->log->error("Cannot find template at $template_path");
+        $c->log->error("The template: $template_path_part returned no response");
+        return 0;
     }
 }
 
+sub _template_path_part_from_context {
+    my ($self, $c) = @_;
+    my $template_path_part = $c->stash->{template} || "" . $c->action;
+    if ($self->has_template_extension) {
+        my $ext = $self->template_extension;
+        $template_path_part = $template_path_part . '.' . $ext
+          unless $template_path_part =~ /\.$ext$/;
+    }
+    return $template_path_part;
+}
+
 sub render {
-    my ($self, $c, $template) = @_;
-    my $zoom = $self->_build_zoom($template);
+    my ($self, $c, $template_path_part, $args) = @_;
+    my $zoom = $self->_build_zoom_for($template_path_part);
     my $zoomer_class = $self->_zoomer_class_from_context($c);
     my $zoomer = $self->_build_zoomer($zoomer_class);
     my $action = $self->_target_action_from_context($c);
 
-    {
+    LOCALIZE_ZOOM: {
         local $_ = $zoom;
-        return $zoomer->$action($c->stash)->to_html;
+        my $vars =  {$args ? %{ $args } : %{ $ctx->stash }};
+        return $zoomer->$action($vars)->to_html;
     }
 }
 
-sub _template_path_from_context {
-    my ($self, $c) = @_;
-    my $template_fn = $c->stash->{template} || "" . $c->action;
-    if (my $ext = $self->template_extension) {
-        $template_fn = $template_fn . '.' . $ext
-            unless $template_fn =~ /\.$ext$/;
+sub _build_zoom_for {
+    my ($self, $template_path_part) = @_;
+    if(ref $template_path_part) {
+        return HTML::Zoom->from_html($$template);
+    } else {
+        my $template_path = $self->template_abs_path($template_path_part);
+        return HTML::Zoom->from_file($template);
     }
-    
-    return $self->has_root ?
-        Path::Class::dir($self->root, $template_fn) :
-        Path::Class::dir($c->config->{root}, $template_fn);
 }
 
-sub _build_zoom {
-    my ($self, $template) = @_;
-    return ref $template ? 
-      HTML::Zoom->from_html($$template) :
-      HTML::Zoom->from_file($template);
+sub template_abs_path {
+    my ($self, $template_path_part) = @_;
+    Path::Class::dir($self->root_prefix, $template_path_part);
 }
 
 sub _zoomer_class_from_context {
     my ($self, $c) = @_;
     my $controller = $c->controller->meta->name;
-    $controller =~ s/^.*::(.*)$/$1/;
+    $controller =~ s/^.*::Controller::(.*)$/$1/;
     my $zoomer_class = do {
         $c->stash->{zoom_class} ||
           join('::', ($self->meta->name, $controller));
@@ -93,6 +113,8 @@ sub _target_action_from_context {
     return $c->stash->{zoom_action}
       || $c->action->name;
 }
+
+__PACKAGE__->meta->make_immutable;
 
 =head1 SYNOPSIS
 
@@ -119,29 +141,55 @@ sub _target_action_from_context {
 
     /wobble/dance => "<p>Shake those <span id="shake">hips</span>!</p>";
 
+=head1 ATTRIBUTES
+
+The following is a list of configuration attributes you can set in your global
+L<Catalyst> configuration or locally with the C<__PACKAGE__->config> method.
+
+=head2 template_extension
+
+Optionally set the filename extension of your zoomable templates.  Common
+values might be 'html' or 'xhtml'
+
+=head2 content_type
+
+Sets the default content-type of the response body.
+
+=head2 root_prefix
+
+Used at the prefix path for where yout templates are stored.  Defaults to 
+$c->config->{root}.  
+
 =head1 METHODS
 
-=head2 process
+=head2 process ($c)
 
-Renders the template specified in C<$c->stash->{template}> or C<$c->namespace/$c->action>
-(the private name of the matched action). Calls render to perform actual rendering.
+Renders the template specified in C<$c->stash->{template}> or 
+C<$c->namespace/$c->action> (the private name of the matched action). Stash
+contents are passed to the underlying view object.
 
-Output is stored in $c->response->body.
+Output is stored in C<$c->response->body> and we set the value of 
+C<$c->response->content_type> to C<text/html; charset=utf-8> or whatever you
+configured as the L</content_type> attribute unless this header has previously
+been set.
 
-=head2 render($c, $template)
+=head2 render($c, $template, $args)
 
-Renders the given template and returns output, or a Template::Exception object upon error.
+Renders the given template and returns output.
 
-=head2 _build_zoom ($template_path|\$html)
+If C<$template> is a simple scalar, we assume this is a path part that combines
+with the value of L</root_prefix> to discover a file that lives on your local
+filesystem.
 
-Returns an L<HTML::Zoom> object given either a path on the filesystem or a
-scalar reference containing the html text.
+However, if C<$template> is a ref, we assume this is a scalar ref containing 
+some html you wish to render directly.
 
 =head1 WARNING: VOLATILE!
 
-This is the first version of a Catalyst view to L<HTML::Zoom> - and we might have got it wrong. Please be
-aware that this is still in early stages, and the API is not at all stable. You have been warned (but
-encouraged to break it and submit bug reports and patches :).
+This is the first version of a Catalyst view to L<HTML::Zoom> - and we might 
+have got it wrong. Please be aware that this is still in early stages, and the
+API is not at all stable. You have been warned (but encouraged to break it and 
+submit bug reports and patches :).
 
 =head1 THANKS
 
@@ -149,4 +197,3 @@ Thanks to Thomas Doran for the initial starting point
 
 =cut
 
-__PACKAGE__->meta->make_immutable;
