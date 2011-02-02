@@ -4,8 +4,8 @@ package Catalyst::View::HTML::Zoom;
 use Moose;
 use Class::MOP;
 use HTML::Zoom;
-use namespace::autoclean;
 use Path::Class ();
+use namespace::autoclean;
 
 extends 'Catalyst::View';
 with 'Catalyst::Component::ApplicationAttribute';
@@ -25,7 +25,6 @@ has content_type => (
 
 has root_prefix => (
     is => 'ro',
-    isa => 'Str',
     lazy_build => 1,
 );
 
@@ -61,29 +60,39 @@ sub _template_path_part_from_context {
 
 sub render {
     my ($self, $c, $template_path_part, $args) = @_;
-    my $zoom = $self->_build_zoom_for($template_path_part);
+    my $zoom = $self->_build_zoom_from($template_path_part);
     my $zoomer_class = $self->_zoomer_class_from_context($c);
-    my $zoomer = $self->_build_zoomer($zoomer_class);
+    my $zoomer = $self->_build_zoomer_from($zoomer_class);
     my $action = $self->_target_action_from_context($c);
 
     LOCALIZE_ZOOM: {
         local $_ = $zoom;
-        my $vars =  {$args ? %{ $args } : %{ $ctx->stash }};
+        my $vars =  {$args ? %{ $args } : %{ $c->stash }};
         return $zoomer->$action($vars)->to_html;
     }
 }
 
-sub _build_zoom_for {
+sub _build_zoom_from {
     my ($self, $template_path_part) = @_;
     if(ref $template_path_part) {
-        return HTML::Zoom->from_html($$template);
+        return $self->_build_zoom_from_html($$template_path_part);
     } else {
-        my $template_path = $self->template_abs_path($template_path_part);
-        return HTML::Zoom->from_file($template);
+        my $template_abs_path = $self->_template_abs_path_from($template_path_part);
+        return $self->_build_zoom_from_file($template_abs_path);
     }
 }
 
-sub template_abs_path {
+sub _build_zoom_from_html {
+    my ($self, $html) = @_;
+    HTML::Zoom->from_html($html);
+}
+
+sub _build_zoom_from_file {
+    my ($self, $file) = @_;
+    HTML::Zoom->from_file($file);
+}
+
+sub _template_abs_path_from {
     my ($self, $template_path_part) = @_;
     Path::Class::dir($self->root_prefix, $template_path_part);
 }
@@ -100,7 +109,7 @@ sub _zoomer_class_from_context {
     return $zoomer_class;
 }
 
-sub _build_zoomer {
+sub _build_zoomer_from {
     my ($self, $zoomer_class) = @_;
     my $key = $zoomer_class;
     $key =~s/^.+::(View)/$1/;
