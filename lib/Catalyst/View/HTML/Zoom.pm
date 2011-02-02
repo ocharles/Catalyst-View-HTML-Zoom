@@ -174,31 +174,32 @@ L<Catalyst> configuration or locally as in:
 =head2 template_extension
 
 Optionally set the filename extension of your zoomable templates.  Common
-values might be 'html' or 'xhtml'
+values might be C<html> or C<xhtml>
 
 =head2 content_type
 
-Sets the default content-type of the response body.
+Sets the default C<content-type> of the response body.
 
 =head2 root_prefix
 
-Used at the prefix path for where yout templates are stored.  Defaults to 
-$c->config->{root}.  
+Used at the prefix path for where yout templates are stored.  Defaults to:
+
+    $c->config->{root}
 
 =head1 METHODS
 
 =head2 process ($c)
 
-Renders the template specified in C<$c->stash->{template}> or 
-C<$c->namespace/$c->action> (the private name of the matched action). Stash
+Renders the template specified in C<< $c->stash->{template} >> or 
+C<< $c->namespace/$c->action >> (the private name of the matched action). Stash
 contents are passed to the underlying view object.
 
-Output is stored in C<$c->response->body> and we set the value of 
-C<$c->response->content_type> to C<text/html; charset=utf-8> or whatever you
+Output is stored in C<< $c->response->body >> and we set the value of 
+C<< $c->response->content_type >> to C<text/html; charset=utf-8> or whatever you
 configured as the L</content_type> attribute unless this header has previously
 been set.
 
-=head2 render($c, $template, $args)
+=head2 render ($c, $template, $args)
 
 Renders the given template and returns output.
 

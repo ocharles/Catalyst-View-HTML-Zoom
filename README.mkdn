@@ -39,31 +39,32 @@ The following is a list of configuration attributes you can set in your global
 ## template_extension
 
 Optionally set the filename extension of your zoomable templates.  Common
-values might be 'html' or 'xhtml'
+values might be `html` or `xhtml`
 
 ## content_type
 
-Sets the default content-type of the response body.
+Sets the default `content-type` of the response body.
 
 ## root_prefix
 
-Used at the prefix path for where yout templates are stored.  Defaults to 
-$c->config->{root}.  
+Used at the prefix path for where yout templates are stored.  Defaults to:
+
+    $c->config->{root}
 
 # METHODS
 
 ## process ($c)
 
-Renders the template specified in `$c-`stash->{template}> or 
-`$c-`namespace/$c->action> (the private name of the matched action). Stash
+Renders the template specified in `$c->stash->{template}` or 
+`$c->namespace/$c->action` (the private name of the matched action). Stash
 contents are passed to the underlying view object.
 
-Output is stored in `$c-`response->body> and we set the value of 
-`$c-`response->content_type> to `text/html; charset=utf-8` or whatever you
+Output is stored in `$c->response->body` and we set the value of 
+`$c->response->content_type` to `text/html; charset=utf-8` or whatever you
 configured as the [content_type](#pod_content_type) attribute unless this header has previously
 been set.
 
-## render($c, $template, $args)
+## render ($c, $template, $args)
 
 Renders the given template and returns output.
 
