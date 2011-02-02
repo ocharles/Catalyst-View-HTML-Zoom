@@ -182,11 +182,12 @@ Sets the default C<content-type> of the response body.
 
 =head2 root_prefix
 
-Used at the prefix path for where yout templates are stored.  Defaults to:
-
-    $c->config->{root}
+Used at the prefix path for where yout templates are stored.  Defaults to
+C<< $c->config->{root} >>
 
 =head1 METHODS
+
+This class contains the following methods available for public use.
 
 =head2 process ($c)
 

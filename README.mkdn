@@ -47,11 +47,12 @@ Sets the default `content-type` of the response body.
 
 ## root_prefix
 
-Used at the prefix path for where yout templates are stored.  Defaults to:
-
-    $c->config->{root}
+Used at the prefix path for where yout templates are stored.  Defaults to
+`$c->config->{root}`
 
 # METHODS
+
+This class contains the following methods available for public use.
 
 ## process ($c)
 
