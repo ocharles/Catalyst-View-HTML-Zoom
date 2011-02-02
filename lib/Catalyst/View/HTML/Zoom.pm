@@ -29,8 +29,7 @@ has root_prefix => (
 );
 
 sub _build_root_prefix {
-    shift->_application->config->{root}
-      || 'root';
+    shift->_application->config->{root};
 }
 
 sub process {
@@ -49,7 +48,7 @@ sub process {
 
 sub _template_path_part_from_context {
     my ($self, $c) = @_;
-    my $template_path_part = $c->stash->{template} || "" . $c->action;
+    my $template_path_part = $c->stash->{template} || $c->action->private_path;
     if ($self->has_template_extension) {
         my $ext = $self->template_extension;
         $template_path_part = $template_path_part . '.' . $ext
@@ -84,11 +83,13 @@ sub _build_zoom_from {
 
 sub _build_zoom_from_html {
     my ($self, $html) = @_;
+    $self->_application->log->debug("Building HTML::Zoom from direct HTML");
     HTML::Zoom->from_html($html);
 }
 
 sub _build_zoom_from_file {
     my ($self, $file) = @_;
+    $self->_application->log->debug("Building HTML::Zoom from file $file");
     HTML::Zoom->from_file($file);
 }
 
@@ -105,6 +106,7 @@ sub _zoomer_class_from_context {
         $c->stash->{zoom_class} ||
           join('::', ($self->meta->name, $controller));
     };
+    $self->_application->log->debug("Using View Class: $zoomer_class");
     Class::MOP::load_class($zoomer_class);
     return $zoomer_class;
 }
