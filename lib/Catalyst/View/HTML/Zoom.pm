@@ -83,13 +83,13 @@ sub _build_zoom_from {
 
 sub _build_zoom_from_html {
     my ($self, $html) = @_;
-    $self->_application->log->debug("Building HTML::Zoom from direct HTML");
+    $self->_debug_log("Building HTML::Zoom from direct HTML");
     HTML::Zoom->from_html($html);
 }
 
 sub _build_zoom_from_file {
     my ($self, $file) = @_;
-    $self->_application->log->debug("Building HTML::Zoom from file $file");
+    $self->_debug_log("Building HTML::Zoom from file $file");
     HTML::Zoom->from_file($file);
 }
 
@@ -106,7 +106,7 @@ sub _zoomer_class_from_context {
         $c->stash->{zoom_class} ||
           join('::', ($self->meta->name, $controller));
     };
-    $self->_application->log->debug("Using View Class: $zoomer_class");
+    $self->_debug_log("Using View Class: $zoomer_class");
     Class::MOP::load_class($zoomer_class);
     return $zoomer_class;
 }
@@ -123,6 +123,12 @@ sub _target_action_from_context {
     my ($self, $c) = @_;
     return $c->stash->{zoom_action}
       || $c->action->name;
+}
+
+sub _debug_log {
+    my ($self, $message) = @_;
+    $self->_application->log->debug($message)
+      if $self->_application->debug;
 }
 
 __PACKAGE__->meta->make_immutable;
@@ -150,12 +156,20 @@ __PACKAGE__->meta->make_immutable;
     #root/wobble/dance
     <p>Shake those <span id="shake" />!</p>
 
-    /wobble/dance => "<p>Shake those <span id="shake">hips</span>!</p>";
+    GET /wobble/dance => "<p>Shake those <span id="shake">hips</span>!</p>";
 
 =head1 ATTRIBUTES
 
 The following is a list of configuration attributes you can set in your global
-L<Catalyst> configuration or locally with the C<__PACKAGE__->config> method.
+L<Catalyst> configuration or locally as in:
+
+    package MyApp::View::HTML;
+    use Moose;
+    extends 'Catalyst::View::HTML::Zoom';
+
+    __PACKAGE__->config({
+        content_type => 'text/plain',
+    });
 
 =head2 template_extension
 

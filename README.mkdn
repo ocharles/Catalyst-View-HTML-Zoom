@@ -21,12 +21,20 @@
     #root/wobble/dance
     <p>Shake those <span id="shake" />!</p>
 
-    /wobble/dance => "<p>Shake those <span id="shake">hips</span>!</p>";
+    GET /wobble/dance => "<p>Shake those <span id="shake">hips</span>!</p>";
 
 # ATTRIBUTES
 
 The following is a list of configuration attributes you can set in your global
-[Catalyst](http://search.cpan.org/perldoc?Catalyst) configuration or locally with the `__PACKAGE__-`config> method.
+[Catalyst](http://search.cpan.org/perldoc?Catalyst) configuration or locally as in:
+
+    package MyApp::View::HTML;
+    use Moose;
+    extends 'Catalyst::View::HTML::Zoom';
+
+    __PACKAGE__->config({
+        content_type => 'text/plain',
+    });
 
 ## template_extension
 
