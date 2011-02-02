@@ -65,7 +65,7 @@ Output is stored in `$c->response->body` and we set the value of
 configured as the [content_type](#pod_content_type) attribute unless this header has previously
 been set.
 
-## render ($c, $template, $args)
+## render ($c, $template|$$template, $args)
 
 Renders the given template and returns output.
 
