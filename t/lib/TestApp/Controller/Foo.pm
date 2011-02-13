@@ -9,4 +9,14 @@ sub bar :Local {
     $c->stash( name => 'Foo Foo' );
 }
 
+sub name_zaction_class :Local {
+    my ($self, $c) = @_;
+    $c->stash(
+      name => 'Dave',
+      template => 'main',
+      zoom_action => 'main',
+      zoom_class => 'Root',
+    );
+}
+
 __PACKAGE__->meta->make_immutable;
