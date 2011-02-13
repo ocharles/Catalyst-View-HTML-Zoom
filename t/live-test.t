@@ -22,4 +22,10 @@ use Catalyst::Test 'TestApp';
     ok $ctx->res->body =~ m|Hello my name is <span id="name">Foo Foo</span>|;
 }
 
+{
+    my ($res, $ctx) = ctx_request('/direct_render');
+    ok $res->is_success;
+    ok $ctx->res->body =~ m|Hello <span id="name">Dave</span>|;
+}
+
 done_testing;

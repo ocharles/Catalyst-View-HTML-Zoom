@@ -6,4 +6,9 @@ sub main {
     $_->select("#name")->replace_content($stash->{name});
 }
 
+sub direct_render {
+    my ($self, $stash) = @_;
+    $_->select("#name")->replace_content($stash->{name});
+}
+
 1;

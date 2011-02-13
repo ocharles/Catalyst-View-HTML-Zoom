@@ -23,12 +23,12 @@ has content_type => (
     default => 'text/html; charset=utf-8',
 );
 
-has root_prefix => (
+has root => (
     is => 'ro',
     lazy_build => 1,
 );
 
-sub _build_root_prefix {
+sub _build_root {
     shift->_application->config->{root};
 }
 
@@ -95,7 +95,7 @@ sub _build_zoom_from_file {
 
 sub _template_abs_path_from {
     my ($self, $template_path_part) = @_;
-    Path::Class::dir($self->root_prefix, $template_path_part);
+    Path::Class::dir($self->root, $template_path_part);
 }
 
 sub _zoomer_class_from_context {
@@ -180,7 +180,7 @@ values might be C<html> or C<xhtml>
 
 Sets the default C<content-type> of the response body.
 
-=head2 root_prefix
+=head2 root
 
 Used at the prefix path for where yout templates are stored.  Defaults to
 C<< $c->config->{root} >>
@@ -189,7 +189,9 @@ C<< $c->config->{root} >>
 
 This class contains the following methods available for public use.
 
-=head2 process ($c)
+=head2 process 
+
+args: ($c)
 
 Renders the template specified in C<< $c->stash->{template} >> or 
 C<< $c->namespace/$c->action >> (the private name of the matched action). Stash
@@ -200,12 +202,14 @@ C<< $c->response->content_type >> to C<text/html; charset=utf-8> or whatever you
 configured as the L</content_type> attribute unless this header has previously
 been set.
 
-=head2 render ($c, $template || \$template, \%args)
+=head2 render
+
+args: ($c, $template || \$template, \%args)
 
 Renders the given template and returns output.
 
 If C<$template> is a simple scalar, we assume this is a path part that combines
-with the value of L</root_prefix> to discover a file that lives on your local
+with the value of L</root> to discover a file that lives on your local
 filesystem.
 
 However, if C<$template> is a ref, we assume this is a scalar ref containing 
