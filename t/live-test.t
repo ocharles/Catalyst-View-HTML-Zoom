@@ -28,4 +28,9 @@ use Catalyst::Test 'TestApp';
     ok $ctx->res->body =~ m|Hello <span id="name">Dave</span>|;
 }
 
+{
+    my ($res, $ctx) = ctx_request('/name_zaction');
+    ok $res->is_success;
+    ok $ctx->res->body =~ m|Hello <span id="name">Dave</span>|;
+}
 done_testing;

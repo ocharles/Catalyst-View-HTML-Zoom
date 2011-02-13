@@ -11,7 +11,7 @@ sub main :Path {
     $c->stash( name => 'Dave' );
 }
 
-sub direct_render :Path {
+sub direct_render :Local {
     my ($self, $c) = @_;
     my $body = 
         $c->
@@ -25,6 +25,15 @@ sub direct_render :Path {
     $c->res->body($body);
 }
 
+sub name_zaction :Local {
+    my ($self, $c) = @_;
+    $c->stash(
+      name => 'Dave',
+      template => 'main',
+      zoom_action => 'main',
+    );
+}
+ 
 sub end : ActionClass('RenderView') {}
 
 __PACKAGE__->meta->make_immutable;

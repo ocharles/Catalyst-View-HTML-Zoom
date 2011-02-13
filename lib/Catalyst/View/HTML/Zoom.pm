@@ -121,6 +121,9 @@ sub _build_zoomer_from {
 
 sub _target_action_from_context {
     my ($self, $c) = @_;
+
+    $c->log->_dump($c->stash);
+
     return $c->stash->{zoom_action}
       || $c->action->name;
 }
