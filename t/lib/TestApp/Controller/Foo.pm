@@ -15,8 +15,19 @@ sub name_zaction_class :Local {
       name => 'Dave',
       template => 'main',
       zoom_action => 'main',
-      zoom_class => 'Root',
+      zoom_class => 'TestApp::View::HTML::Root',
     );
 }
+
+sub name_zaction_class_short :Local {
+    my ($self, $c) = @_;
+    $c->stash(
+      name => 'Dave',
+      template => 'main',
+      zoom_action => 'main',
+      zoom_class => '::Root',
+    );
+}
+
 
 __PACKAGE__->meta->make_immutable;

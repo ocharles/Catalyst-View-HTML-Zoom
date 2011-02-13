@@ -106,6 +106,8 @@ sub _zoomer_class_from_context {
         $c->stash->{zoom_class} ||
           join('::', ($self->meta->name, $controller));
     };
+    $zoomer_class = ref($self) . $zoomer_class
+      if $zoomer_class=~m/^::/;
     $self->_debug_log("Using View Class: $zoomer_class");
     Class::MOP::load_class($zoomer_class);
     return $zoomer_class;
@@ -121,9 +123,6 @@ sub _build_zoomer_from {
 
 sub _target_action_from_context {
     my ($self, $c) = @_;
-
-    $c->log->_dump($c->stash);
-
     return $c->stash->{zoom_action}
       || $c->action->name;
 }
